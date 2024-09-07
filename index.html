@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprawdź - Dodaj Multimedia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            flex-direction: column;
+        }
+        #uploadButton {
+            font-size: 24px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        #uploadButton:hover {
+            background-color: #0056b3;
+        }
+        #uploadSection {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        #mediaContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 500px;
+            max-height: 200px;
+            overflow-y: scroll;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .media-item {
+            width: 100px;
+            height: 100px;
+            margin: 5px;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        video.media-item {
+            object-fit: contain;
+        }
+        #instructionText {
+            font-size: 20px;
+            color: #ff0000;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="uploadButton">Sprawdź</button>
+
+    <div id="uploadSection">
+        <p id="instructionText">Dodaj swoje zdjęcie 🔞🥵</p>
+        <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+        <div id="mediaContainer"></div>
+    </div>
+
+    <script>
+        const uploadButton = document.getElementById('uploadButton');
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        const mediaContainer = document.getElementById('mediaContainer');
+        const instructionText = document.getElementById('instructionText');
+
+        // Funkcja do wczytania zapisanych mediów z localStorage
+        function loadMedia() {
+            const savedMedia = JSON.parse(localStorage.getItem('media')) || [];
+            savedMedia.forEach(media => addMediaToContainer(media.src, media.type));
+        }
+
+        // Funkcja do dodawania mediów do kontenera
+        function addMediaToContainer(src, type) {
+            const mediaElement = document.createElement(type === 'video' ? 'video' : 'img');
+            mediaElement.src = src;
+            mediaElement.classList.add('media-item');
+            if (type === 'video') {
+                mediaElement.controls = true;
+            }
+            mediaElement.addEventListener('click', () => {
+                showMedia(src, type);
+            });
+            mediaContainer.appendChild(mediaElement);
+        }
+
+        // Funkcja do zapisywania mediów w localStorage
+        function saveMedia(files) {
+            const savedMedia = JSON.parse(localStorage.getItem('media')) || [];
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const media = {
+                        src: e.target.result,
+                        type: file.type.startsWith('video') ? 'video' : 'image'
+                    };
+                    savedMedia.push(media);
+                    localStorage.setItem('media', JSON.stringify(savedMedia));
+                    addMediaToContainer(e.target.result, media.type);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Funkcja do wyświetlania mediów
+        function showMedia(src, type) {
+            const mediaElement = document.createElement(type === 'video' ? 'video' : 'img');
+            mediaElement.src = src;
+            mediaElement.style.width = '80%';
+            mediaElement.style.height = 'auto';
+            mediaElement.style.marginTop = '20px';
+            if (type === 'video') {
+                mediaElement.controls = true;
+                mediaElement.autoplay = true;
+            }
+            document.body.innerHTML = ''; // Usuń wszystkie elementy z body
+            document.body.appendChild(mediaElement); // Pokaż wybrane media
+        }
+
+        // Event listener na przycisk uploadButton
+        uploadButton.addEventListener('click', () => {
+            uploadButton.style.display = 'none';
+            uploadSection.style.display = 'flex';
+        });
+
+        // Event listener na input fileInput
+        fileInput.addEventListener('change', (event) => {
+            saveMedia(event.target.files);
+        });
+
+        // Wczytaj media po załadowaniu strony
+        window.addEventListener('load', loadMedia);
+    </script>
+
+</body>
+</html>
